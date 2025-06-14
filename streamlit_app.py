@@ -374,6 +374,7 @@ class SocialMediaAggregator:
                 st.success(f"✅ Fetched {len(reddit_posts)} Reddit posts")
         
         return all_posts
+
 # Ugandan context detection
 class UgandanContentDetector:
     def __init__(self):
@@ -621,11 +622,13 @@ class UgandaTrendAnalyzer:
             avg_sentiment = np.mean(topic_sentiments[topic])
             avg_engagement = np.mean(topic_engagements[topic])
             
+            sentiment_label = 'Positive' if avg_sentiment > 0.1 else 'Negative' if avg_sentiment < -0.1 else 'Neutral'
+            
             trending_topics.append({
                 'topic': topic,
                 'post_count': count,
                 'avg_sentiment': avg_sentiment,
-                'sentiment_label': 'Positive' if avg_sentiment > 0.1 else 'Negative' if avg_sentiment < -0.1 else 'Neutral',
+                'sentiment_label': sentiment_label,
                 'avg_engagement': avg_engagement,
                 'trend_score': count * (1 + abs(avg_sentiment)) * np.log(avg_engagement + 1)
             })
@@ -793,8 +796,13 @@ def main():
                         st.metric("Topic", topic['topic'])
                     
                     with col_c:
-                        sentiment_color = "🟢" if topic['sentiment_label'] == 'Positive' else "🔴" if topic['sentiment_label'] == 'Negative' else "🟡"
-                        st.metric("Sentiment", f"{sentiment_color} {topic['sentiment_label']}")
+                        if topic['sentiment_label'] == 'Positive':
+                            sentiment_emoji = "🟢"
+                        elif topic['sentiment_label'] == 'Negative':
+                            sentiment_emoji = "🔴"
+                        else:
+                            sentiment_emoji = "🟡"
+                        st.metric("Sentiment", f"{sentiment_emoji} {topic['sentiment_label']}")
                     
                     with col_d:
                         st.metric("Posts", topic['post_count'])
@@ -981,111 +989,6 @@ def main():
     st.info("💡 **For Media Houses:** This prototype demonstrates both mock and real-time data capabilities. "
             "Configure your free API keys above to start analyzing real Ugandan social media trends. "
             "Contact us for enterprise features, advanced ML models, and custom integrations.")
-
-if __name__ == "__main__":
-    main() topic['sentiment_label'] == 'Positive' else "🔴" if topic['sentiment_label'] == 'Negative' else "🟡"
-                    st.metric("Sentiment", f"{sentiment_color} {topic['sentiment_label']}")
-                
-                with col_d:
-                    st.metric("Posts", topic['post_count'])
-                
-                st.divider()
-            
-            # Trend visualization
-            st.subheader("📈 Trend Visualization")
-            
-            # Sentiment distribution
-            fig_sentiment = px.bar(
-                df_trends.head(10),
-                x='topic',
-                y='post_count',
-                color='sentiment_label',
-                title="Post Count by Topic and Sentiment",
-                color_discrete_map={
-                    'Positive': '#00CC96',
-                    'Negative': '#EF553B',
-                    'Neutral': '#FFA15A'
-                }
-            )
-            fig_sentiment.update_layout(xaxis_tickangle=-45)
-            st.plotly_chart(fig_sentiment, use_container_width=True)
-            
-            # Trend score visualization
-            fig_trend = px.scatter(
-                df_trends.head(10),
-                x='avg_engagement',
-                y='trend_score',
-                size='post_count',
-                color='sentiment_label',
-                hover_name='topic',
-                title="Trend Score vs Engagement",
-                color_discrete_map={
-                    'Positive': '#00CC96',
-                    'Negative': '#EF553B',
-                    'Neutral': '#FFA15A'
-                }
-            )
-            st.plotly_chart(fig_trend, use_container_width=True)
-        
-        else:
-            st.warning("No trending topics found. Try refreshing the data.")
-    
-    with col2:
-        st.header("📋 Analytics Dashboard")
-        
-        # Summary statistics
-        ugandan_posts = [post for post in processed_posts if post['is_ugandan']]
-        total_posts = len(processed_posts)
-        ugandan_count = len(ugandan_posts)
-        
-        st.metric("Total Posts Analyzed", total_posts)
-        st.metric("Ugandan Content", ugandan_count)
-        st.metric("Detection Rate", f"{(ugandan_count/total_posts)*100:.1f}%" if total_posts > 0 else "0%")
-        
-        # Platform distribution
-        if processed_posts:
-            platform_counts = Counter([post['platform'] for post in ugandan_posts])
-            
-            st.subheader("📱 Platform Distribution")
-            for platform, count in platform_counts.items():
-                st.write(f"**{platform}:** {count} posts")
-        
-        # Recent Ugandan posts
-        st.subheader("🇺🇬 Recent Ugandan Posts")
-        
-        recent_ugandan = sorted(
-            ugandan_posts,
-            key=lambda x: x['timestamp'],
-            reverse=True
-        )[:5]
-        
-        for post in recent_ugandan:
-            with st.expander(f"{post['platform']} - {post['sentiment_label']}"):
-                st.write(post['content'])
-                st.caption(f"Confidence: {post['ugandan_confidence']:.2f} | "
-                          f"Sentiment: {post['sentiment_score']:.2f}")
-    
-    # Footer
-    st.markdown("---")
-    st.markdown("""
-    **Demo Features:**
-    - ✅ Ugandan content detection using contextual keywords
-    - ✅ Sentiment analysis with TextBlob
-    - ✅ Topic extraction and trending calculation
-    - ✅ Real-time dashboard with visualizations
-    - ✅ SQLite database for data persistence
-    
-    **Production Ready Features:**
-    - 🔄 Live social media API integration
-    - 🔄 Advanced ML models for content classification
-    - 🔄 Real-time data streaming
-    - 🔄 Cloud database integration
-    - 🔄 API endpoints for media house integration
-    """)
-    
-    st.info("💡 **For Media Houses:** This prototype demonstrates core functionality. "
-            "Contact us to discuss custom API integration, real-time data feeds, "
-            "and advanced analytics features for your newsroom.")
 
 if __name__ == "__main__":
     main()
