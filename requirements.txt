@@ -1,7 +1,8 @@
 streamlit
 pandas
 numpy
-requests
+matplotlib
 plotly
+requests
+seaborn
 textblob
-sqlite3
